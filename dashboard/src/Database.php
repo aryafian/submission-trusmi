@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Trusmi\Kpi;
+
+use PDO;
+
+final class Database
+{
+    /**
+     * @param array{host: string, port: int, name: string, user: string, password: string} $db
+     */
+    public static function connect(array $db): PDO
+    {
+        $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $db['host'], $db['port'], $db['name']);
+
+        return new PDO($dsn, $db['user'], $db['password'], [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            // Native prepared statement: parameter tidak pernah digabung ke string SQL oleh PHP.
+            PDO::ATTR_EMULATE_PREPARES   => false,
+            PDO::ATTR_TIMEOUT            => 5,
+        ]);
+    }
+}

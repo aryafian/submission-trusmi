@@ -1,0 +1,2 @@
+# Pengaman kalau document root salah diarahkan ke folder ini: hanya public/ yang boleh diakses.
+Require all denied

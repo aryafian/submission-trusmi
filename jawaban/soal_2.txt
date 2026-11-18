@@ -1,0 +1,55 @@
+JAWABAN SOAL 2: JUMLAH DAN PERSENTASE TASKLIST ONTIME VS LATE
+Kompatibel: MySQL 8.0+, MariaDB 10.2+, PostgreSQL 12+
+
+Aturan leadtime:
+- Ontime : aktual <= deadline
+- Late   : aktual > deadline
+- Belum selesai (aktual IS NULL): dipisahkan agar tidak mengubah pembagi persen.
+
+1. QUERY SQL
+--------------------------------------------------------------------------------
+-- 2a. Rekap keseluruhan
+SELECT COUNT(*)                                             AS total_tasklist,
+       COUNT(CASE WHEN aktual <= deadline THEN 1 END)       AS ontime,
+       COUNT(CASE WHEN aktual >  deadline THEN 1 END)       AS late,
+       COUNT(CASE WHEN aktual IS NULL THEN 1 END)           AS belum_selesai,
+       ROUND(COUNT(CASE WHEN aktual <= deadline THEN 1 END) * 100.0
+             / NULLIF(COUNT(aktual), 0), 2)                 AS persen_ontime,
+       ROUND(COUNT(CASE WHEN aktual >  deadline THEN 1 END) * 100.0
+             / NULLIF(COUNT(aktual), 0), 2)                 AS persen_late
+FROM table_kpi_marketing;
+
+-- 2b. Rincian per karyawan
+SELECT karyawan                                             AS nama,
+       COUNT(*)                                             AS total_tasklist,
+       COUNT(CASE WHEN aktual <= deadline THEN 1 END)       AS ontime,
+       COUNT(CASE WHEN aktual >  deadline THEN 1 END)       AS late,
+       COUNT(CASE WHEN aktual IS NULL THEN 1 END)           AS belum_selesai,
+       ROUND(COUNT(CASE WHEN aktual <= deadline THEN 1 END) * 100.0
+             / NULLIF(COUNT(aktual), 0), 2)                 AS persen_ontime,
+       ROUND(COUNT(CASE WHEN aktual >  deadline THEN 1 END) * 100.0
+             / NULLIF(COUNT(aktual), 0), 2)                 AS persen_late
+FROM table_kpi_marketing
+GROUP BY karyawan
+ORDER BY MIN(id);
+
+2. CATATAN OPTIMASI DAN KEAMANAN DATA
+--------------------------------------------------------------------------------
+- NULLIF(COUNT(aktual), 0) mencegah error pembagian dengan nol saat tabel kosong
+  atau semua tasklist belum memiliki tanggal aktual.
+- COUNT(aktual) menghitung baris yang sudah selesai (non-NULL), sedangkan
+  COUNT(*) menghitung seluruh tasklist.
+- Satu kali index scan pada covering index (karyawan, kpi, deadline, aktual).
+
+3. HASIL OUTPUT (DIVERIFIKASI DI MARIADB 10.11 DAN POSTGRESQL 16.2)
+--------------------------------------------------------------------------------
+Rekap keseluruhan:
+total_tasklist | ontime | late | belum_selesai | persen_ontime | persen_late
+13             | 8      | 5    | 0             | 61.54         | 38.46
+
+Per karyawan:
+nama | total_tasklist | ontime | late | belum_selesai | persen_ontime | persen_late
+Budi | 4              | 3      | 1    | 0             | 75.00         | 25.00
+Adi  | 4              | 3      | 1    | 0             | 75.00         | 25.00
+Rara | 3              | 1      | 2    | 0             | 33.33         | 66.67
+Doni | 2              | 1      | 1    | 0             | 50.00         | 50.00

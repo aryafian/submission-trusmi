@@ -1,0 +1,73 @@
+JAWABAN SOAL 1: QUERY PERHITUNGAN KPI DIVISI MARKETING
+Kompatibel: MySQL 8.0+, MariaDB 10.2+, PostgreSQL 12+
+
+1. QUERY SQL
+--------------------------------------------------------------------------------
+WITH aturan AS (
+  SELECT 2 AS sales_target,  50 AS sales_bobot,  -7 AS sales_bobot_late,
+         2 AS report_target, 50 AS report_bobot, -5 AS report_bobot_late
+),
+rekap AS (
+  SELECT karyawan,
+         MIN(id) AS urutan,
+         COUNT(CASE WHEN kpi = 'Sales'  AND aktual IS NOT NULL THEN 1 END) AS sales_actual,
+         COUNT(CASE WHEN kpi = 'Sales'  AND aktual > deadline  THEN 1 END) AS sales_jumlah_late,
+         COUNT(CASE WHEN kpi = 'Report' AND aktual IS NOT NULL THEN 1 END) AS report_actual,
+         COUNT(CASE WHEN kpi = 'Report' AND aktual > deadline  THEN 1 END) AS report_jumlah_late
+  FROM table_kpi_marketing
+  WHERE kpi IN ('Sales', 'Report')
+  GROUP BY karyawan
+),
+skor AS (
+  SELECT r.karyawan,
+         r.urutan,
+         a.sales_target,
+         r.sales_actual,
+         LEAST(r.sales_actual * 100.0 / a.sales_target, 100) AS sales_pencapaian,
+         a.sales_bobot,
+         r.sales_jumlah_late * a.sales_bobot_late AS sales_late,
+         a.report_target,
+         r.report_actual,
+         LEAST(r.report_actual * 100.0 / a.report_target, 100) AS report_pencapaian,
+         a.report_bobot,
+         r.report_jumlah_late * a.report_bobot_late AS report_late
+  FROM rekap r
+  CROSS JOIN aturan a
+)
+SELECT karyawan                                                        AS nama,
+       sales_target,
+       sales_actual,
+       ROUND(sales_pencapaian, 2)                                      AS sales_pencapaian,
+       sales_bobot,
+       sales_late,
+       ROUND(sales_pencapaian * sales_bobot / 100 + sales_late, 2)     AS sales_total,
+       report_target,
+       report_actual,
+       ROUND(report_pencapaian, 2)                                     AS report_pencapaian,
+       report_bobot,
+       report_late,
+       ROUND(report_pencapaian * report_bobot / 100 + report_late, 2)  AS report_total,
+       ROUND(sales_pencapaian * sales_bobot / 100 + sales_late
+           + report_pencapaian * report_bobot / 100 + report_late, 2)  AS total_bobot
+FROM skor
+ORDER BY urutan;
+
+2. CATATAN OPTIMASI
+--------------------------------------------------------------------------------
+- Single-pass aggregation: seluruh metrik Sales dan Report dihitung dalam satu
+  kali scan tabel melalui conditional aggregation (COUNT + CASE), tidak memakai
+  subquery atau self-join terpisah per KPI.
+- Aturan target/bobot diletakkan di CTE `aturan` agar tidak tersebar di banyak
+  ekspresi.
+- Covering index pada `table_kpi_marketing(karyawan, kpi, deadline, aktual)`
+  memungkinkan MySQL/MariaDB membaca seluruh data langsung dari index
+  (EXPLAIN: Using where; Using index) tanpa membaca baris tabel.
+- LEAST(..., 100) membatasi pencapaian maksimal 100% bila aktual melebihi target.
+
+3. HASIL OUTPUT (DIVERIFIKASI DI MARIADB 10.11 DAN POSTGRESQL 16.2)
+--------------------------------------------------------------------------------
+nama | sales_target | sales_actual | sales_pencapaian | sales_bobot | sales_late | sales_total | report_target | report_actual | report_pencapaian | report_bobot | report_late | report_total | total_bobot
+Budi | 2            | 2            | 100.00           | 50          | 0          | 50.00       | 2             | 2             | 100.00            | 50           | -5          | 45.00        | 95.00
+Adi  | 2            | 2            | 100.00           | 50          | -7         | 43.00       | 2             | 2             | 100.00            | 50           | 0           | 50.00        | 93.00
+Rara | 2            | 2            | 100.00           | 50          | -7         | 43.00       | 2             | 1             | 50.00             | 50           | -5          | 20.00        | 63.00
+Doni | 2            | 1            | 50.00            | 50          | -7         | 18.00       | 2             | 1             | 50.00             | 50           | 0           | 25.00        | 43.00

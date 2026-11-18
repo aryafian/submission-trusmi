@@ -1,0 +1,57 @@
+LAMPIRAN PROMPT AI
+==================
+
+Prompt utama yang digunakan untuk mengerjakan seluruh soal (1-5) beserta
+aspek optimasi, keamanan, dan kualitas UI:
+
+--------------------------------------------------------------------------------
+Kerjakan seluruh instruksi pada Test_Programmer_Soal.md (Soal 1 sampai 5)
+dengan memperhatikan optimasi kode, keamanan database/web, dan kualitas UI.
+
+1. Database & Query SQL (Soal 1, 2, dan 5):
+   - Tulis query Soal 1 dan Soal 2 dalam SQL standar yang berjalan tanpa
+     perubahan di MySQL 8+/MariaDB 10.2+ dan PostgreSQL 12+.
+   - Optimalkan query dengan single-pass conditional aggregation (COUNT + CASE)
+     serta CTE aturan terpusat, batasi pencapaian maksimal 100% dengan LEAST,
+     pisahkan tasklist tanpa tanggal aktual (aktual IS NULL), dan gunakan
+     NULLIF(..., 0) untuk mencegah pembagian dengan nol.
+   - Tambahkan PRIMARY KEY dan covering index pada (karyawan, kpi, deadline,
+     aktual), lalu verifikasi rencana eksekusinya dengan EXPLAIN.
+   - Untuk Soal 5, lakukan normalisasi table_kpi_marketing hingga 3NF/BCNF
+     (tabel divisi, karyawan, kpi, tasklist), pindahkan aturan target/bobot/
+     potongan late ke tabel kpi dengan CHECK dan FOREIGN KEY constraint, buat
+     skrip migrasi transaksional, serta buat view v_skor_kpi yang menghasilkan
+     output identik dengan Soal 1 (sediakan versi MySQL/MariaDB dan PostgreSQL).
+   - Simpan jawaban Soal 1, 2, dan 5 ke file .txt terpisah yang siap dikirim.
+
+2. Dashboard Web (Soal 3 dan 4):
+   - Bangun menggunakan PHP native, MariaDB lokal (PDO), dan Chart.js yang
+     di-vendor secara lokal (tanpa CDN eksternal).
+   - Terapkan arsitektur aman:
+     * Pisahkan document root di folder public/ agar file konfigurasi dan src/
+       tidak bisa diakses langsung dari web (lengkapi .htaccess dan .gitignore).
+     * Gunakan user database khusus dengan hak akses minimum (SELECT saja pada
+       satu tabel, bukan root), PDO native prepared statements
+       (ATTR_EMULATE_PREPARES = false), serta display_errors = 0 agar detail
+       error SQL tidak bocor ke browser.
+     * Sediakan endpoint JSON read-only (hanya GET/HEAD, tolak metode lain
+       dengan HTTP 405), hitung ETag untuk respons 304 Not Modified, dan kirim
+       header keamanan ketat (CSP, X-Content-Type-Options, X-Frame-Options,
+       Referrer-Policy, COOP/CORP, Permissions-Policy).
+     * Render seluruh data di frontend menggunakan DOM API aman (textContent /
+       createElement, tanpa innerHTML).
+
+3. Desain UI, Aksesibilitas, & Verifikasi:
+   - Gunakan arah desain dashboard internal yang tenang dan padat data:
+     * Mode terang dan gelap dengan toggle yang persisten dan lolos kontras
+       WCAG AA (>= 4.5:1 untuk teks, >= 3:1 untuk segmen grafik).
+     * Gunakan pola garis miring selain warna untuk penanda keterlambatan (late)
+       agar tetap terbaca oleh pengguna buta warna atau cetakan grayscale.
+     * Sediakan state loading, empty, dan error beserta tombol pemulihan.
+     * Pastikan navigasi keyboard penuh (skip link, urutan Tab logis, fokus
+       terlihat jelas) dan layout responsif tanpa horizontal overflow dari lebar
+       320px hingga desktop serta zoom 200%.
+   - Verifikasi seluruh query di MariaDB dan PostgreSQL, uji endpoint dan path
+     traversal, uji UI interaktif di browser, lalu ambil screenshot hasil grafik
+     untuk Soal 3 dan Soal 4.
+--------------------------------------------------------------------------------

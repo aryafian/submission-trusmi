@@ -1,0 +1,464 @@
+/*
+  Palet: navy (Sales) dan oker (Report) dibedakan kuat walau dicetak hitam-putih,
+  teal untuk ontime, dan bata merah sebagai satu-satunya aksen: hanya dipakai untuk late/potongan.
+  Pola garis miring pada warna bata adalah penanda late di semua grafik, legenda, dan teks.
+*/
+:root {
+  --bg: #f5f3ee;
+  --surface: #ffffff;
+  --ink: #1b1e22;
+  --muted: #50565e;
+  --line: #d9d5cc;
+  --sales: #173f66;
+  --report: #c98212;
+  --ontime: #11706b;
+  --late: #b42318;
+  --focus: #1b1e22;
+  --radius: 6px;
+  color-scheme: light;
+}
+
+:root[data-tema="gelap"] {
+  --bg: #141619;
+  --surface: #1d2024;
+  --ink: #ecebe7;
+  --muted: #a7acb3;
+  --line: #34383e;
+  --sales: #3a75b0;
+  --report: #f7c974;
+  --ontime: #4fc1b5;
+  --late: #f2806f;
+  --focus: #ecebe7;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  /* Font sistem: alat internal, nol unduhan font, dan Segoe UI di Windows kantor tajam untuk angka. */
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  z-index: 10;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+.topbar,
+main,
+.kaki {
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+}
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-block: 1.5rem 1rem;
+  border-bottom: 2px solid var(--ink);
+}
+
+.topbar__org {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.topbar__aksi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 0.75rem;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  border-radius: var(--radius);
+}
+
+nav a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.tombol {
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--surface);
+  background: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.tombol:hover {
+  background: var(--muted);
+  border-color: var(--muted);
+}
+
+.tombol--garis {
+  color: var(--ink);
+  background: transparent;
+}
+
+.tombol--garis:hover {
+  color: var(--ink);
+  background: var(--surface);
+  border-color: var(--ink);
+}
+
+.tombol:disabled {
+  color: var(--surface);
+  background: var(--muted);
+  border-color: var(--muted);
+  cursor: wait;
+}
+
+.tombol--garis:disabled {
+  color: var(--muted);
+  background: transparent;
+  border-color: var(--muted);
+}
+
+main {
+  padding-bottom: 2rem;
+}
+
+main:focus {
+  outline: none;
+}
+
+.aturan {
+  max-width: 62ch;
+  margin: 1.25rem 0 0;
+  color: var(--muted);
+}
+
+code {
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 0.9em;
+  color: var(--ink);
+}
+
+.angka-late {
+  color: var(--late);
+  font-weight: 600;
+}
+
+.angka-late::before {
+  content: "\2212";
+}
+
+.status {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.status[hidden] {
+  display: none;
+}
+
+.status__pesan {
+  margin: 0;
+}
+
+.status__pesan + .tombol {
+  margin-top: 1rem;
+}
+
+.status--error {
+  border: 2px solid var(--late);
+}
+
+.bagian {
+  margin-top: 3rem;
+}
+
+.bagian + .bagian {
+  margin-top: 4.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.bagian__kepala {
+  max-width: 62ch;
+}
+
+h2 {
+  margin: 0;
+  font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.625rem);
+  line-height: 1.25;
+}
+
+h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.0625rem;
+}
+
+.keterangan {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+}
+
+.swatch-late {
+  display: inline-block;
+  width: 1.1em;
+  height: 0.8em;
+  margin-right: 0.3em;
+  vertical-align: -0.05em;
+  border-radius: 2px;
+  background: repeating-linear-gradient(-45deg, var(--late) 0 3px, var(--surface) 3px 5px);
+  border: 1px solid var(--late);
+}
+
+.sorotan {
+  margin: 1.25rem 0 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.grafik {
+  position: relative;
+  min-width: 0;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  min-height: 16rem;
+}
+
+.grafik canvas {
+  display: block;
+  max-width: 100%;
+}
+
+.deadline-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.ringkasan,
+.per-karyawan {
+  margin: 0;
+  min-width: 0;
+}
+
+.ringkasan__angka {
+  margin: 0;
+  font-size: clamp(2.75rem, 2rem + 3vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ontime);
+  font-variant-numeric: tabular-nums;
+}
+
+.ringkasan__teks {
+  margin-top: 0.5rem;
+  color: var(--muted);
+}
+
+.grafik--donat {
+  min-height: 0;
+  height: 15rem;
+}
+
+.per-karyawan .grafik {
+  margin-top: 0;
+}
+
+.tabel-judul {
+  margin: 1.75rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.tabel-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.tabel {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabel--kpi {
+  min-width: 60rem;
+}
+
+.tabel--deadline {
+  min-width: 36rem;
+}
+
+.tabel th,
+.tabel td {
+  padding: 0.5rem 0.75rem;
+  text-align: right;
+  border-top: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.tabel thead th {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted);
+  vertical-align: bottom;
+}
+
+.tabel .kolom-nama,
+.tabel tbody th,
+.tabel tfoot th {
+  position: sticky;
+  left: 0;
+  text-align: left;
+  background: var(--surface);
+  color: var(--ink);
+  border-right: 1px solid var(--line);
+}
+
+.tabel .grup {
+  text-align: center;
+  color: var(--ink);
+  border-bottom: 3px solid;
+}
+
+.tabel .grup--sales {
+  border-bottom-color: var(--sales);
+}
+
+.tabel .grup--report {
+  border-bottom-color: var(--report);
+}
+
+.tabel .kolom-total,
+.tabel td.total-bobot {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.tabel td.late-ada {
+  color: var(--late);
+  font-weight: 600;
+}
+
+.tabel tfoot th,
+.tabel tfoot td {
+  font-weight: 700;
+  border-top: 2px solid var(--ink);
+}
+
+.kaki {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding-block: 1.25rem 2rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.kaki p {
+  margin: 0;
+}
+
+@media (min-width: 46rem) {
+  .deadline-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+    align-items: start;
+  }
+}
+
+@media (min-width: 62rem) {
+  .deadline-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+  }
+}
+
+@media (max-width: 30rem) {
+  .topbar {
+    padding-block: 1rem 0.75rem;
+  }
+
+  .bagian {
+    margin-top: 2rem;
+  }
+
+  .bagian + .bagian {
+    margin-top: 2.5rem;
+    padding-top: 1.75rem;
+  }
+
+  .grafik {
+    padding: 0.5rem;
+  }
+}
